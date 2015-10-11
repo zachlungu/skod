@@ -6,7 +6,6 @@
 #include "skod.h"
 
 /* prototypes */
-FILE * tcp_connect(char*, char*);
-FILE * tcp_connect2(char*, int, char*);
+FILE * tcp_connect(char*, char*, char*);
 
 #endif /*TCP_H*/

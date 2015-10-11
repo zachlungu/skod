@@ -87,7 +87,7 @@ void ftp_upload_single(ftp_t *ftp, char *path) {
 
 	/* SIGALRM */
 	line = ftp_getline(ftp);
-	data = tcp_connect2(ip, ftp->dataport, "w");
+	data = tcp_connect(ip, ftp->dataport, "w");
 
 	calc_bytes(&d1, fsize);
 	while(( rsize = fread(buffer, 1, sizeof(buffer), fp) ) > 0 ) {
@@ -156,7 +156,7 @@ void ftp_download_single(ftp_t *ftp, char *path) {
 
 	/* SIGALRM */
 	line = ftp_getline(ftp);
-	data = tcp_connect2(ip, ftp->dataport, "r");
+	data = tcp_connect(ip, ftp->dataport, "r");
 		
 	if (( fp = fopen(filename, "w")) == NULL )
 		die("Cannot create %s.", filename);
@@ -241,7 +241,7 @@ void ftp_cat(ftp_t *ftp, char *path) {
 	/* SIGALRM */
 	ftp_getline(ftp);
 
-	data = tcp_connect2(ip, ftp->dataport, "r");
+	data = tcp_connect(ip, ftp->dataport, "r");
 	while(( fgets(buffer, sizeof(buffer), data)) != NULL ) {
 		printf("%s", buffer);
 	}
@@ -281,7 +281,7 @@ void ftp_list(ftp_t *ftp, char *path, int opt) {
 	/* SIGALRM */
 	ftp_getline(ftp);
 
-	data = tcp_connect2(ip, ftp->dataport, "r");
+	data = tcp_connect(ip, ftp->dataport, "r");
 
 	while ( fgets(buffer, sizeof(buffer), data) != NULL ) {
 		/* dir*/
@@ -300,12 +300,13 @@ void ftp_list(ftp_t *ftp, char *path, int opt) {
 }
 
 /* get data port using PASV*/
-int ftp_getdataport(ftp_t *ftp) {
+char * ftp_getdataport(ftp_t *ftp) {
 	char *line = NULL;
 	int p1 = 0;
 	int p2 = 0;
 	int p3_secure = 0;
 	char *act = NULL;
+	static char port[MAX_STR];
 
 	fprintf(ftp->FD, "PASV\r\n");
 	line = ftp_getline(ftp);
@@ -318,7 +319,8 @@ int ftp_getdataport(ftp_t *ftp) {
 	#ifdef DEBUG
 	print(2, "Dataport: %d\n", (p1*256+p2));
 	#endif
-	return (p1*256+p2);
+	sprintf(port, "%d", (p1*256+p2));
+	return port;
 }
 
 /* Will try to login */
@@ -386,7 +388,7 @@ char * ftp_getline(ftp_t *ftp) {
 /* handle TCP connection */
 void ftp_mkcon(ftp_t *ftp) {
 	/* Make the connection */
-	ftp->FD = tcp_connect(ftp->server, ftp->port);
+	ftp->FD = tcp_connect(ftp->server, ftp->port, "r+");
 	if ( !ftp->FD) 
 		die("Connection failed.");
 	ftp_banner(ftp);
