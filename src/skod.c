@@ -178,23 +178,23 @@ void skod_parse_cla(int argc, char **argv, skod_t *skod) {
 	int opt = 0;
 	int index = 0;
 	static struct option longopt[] = {
-    	{"server",   required_argument, 0, 's'},
-    	{"scan",     no_argument,       0, 'S'},
-    	{"port",     required_argument, 0, 'P'},
-    	{"user",     required_argument, 0, 'u'},
-    	{"ls",       required_argument, 0, 'l'},
-    	{"rm",       required_argument, 0, 'r'},
-    	{"cat",      required_argument, 0, 'c'},
-    	{"download", required_argument, 0, 'd'},
-    	{"upload",   required_argument, 0, 'U'},
-    	{"dest",     required_argument, 0, 'e'},
-    	{"size",     required_argument, 0, 'z'},
-    	{"password", required_argument, 0, 'p'},
+		{"server",   required_argument, 0, 's'},
+		{"scan",     no_argument,       0, 'S'},
+		{"port",     required_argument, 0, 'P'},
+		{"user",     required_argument, 0, 'u'},
+		{"ls",       required_argument, 0, 'l'},
+		{"rm",       required_argument, 0, 'r'},
+		{"cat",      required_argument, 0, 'c'},
+		{"download", required_argument, 0, 'd'},
+		{"upload",   required_argument, 0, 'U'},
+		{"dest",     required_argument, 0, 'e'},
+		{"size",     required_argument, 0, 'z'},
+		{"password", required_argument, 0, 'p'},
 		{"delete",   required_argument, 0, 'D'},
 		{"mdtm",     required_argument, 0, 'm'},
-    	{"pwd",      no_argument,       0, 'w'},
-    	{"help",     no_argument,       0, 'h'},
-    	{"version",  no_argument,       0, 'v'},};
+		{"pwd",      no_argument,       0, 'w'},
+		{"help",     no_argument,       0, 'h'},
+		{"version",  no_argument,       0, 'v'},};
 
 	while (( opt = getopt_long(argc, argv, "s:SP:u:p:l:r:d:U:c:z:D:we:m:hv", longopt, &index)) != -1 ) {
 		chkbuffer(optarg);

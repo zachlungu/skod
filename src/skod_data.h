@@ -1,8 +1,5 @@
 /* skod_data.h - This file conatin the skod DATA for multiple tasks*/
 
-#define NIX	"*nix"
-#define NT	"Windows"
-
 /* FTP prod */
 #define SKOD_PROD_UNKNOWN "unknown"
 
