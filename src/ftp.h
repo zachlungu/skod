@@ -13,7 +13,7 @@
 typedef struct {
 	FILE *FD;
 	int code;
-	int dataport;
+	char *dataport;
 	unsigned int alarm_sec;
 	int logged;
 	char *user;
@@ -24,10 +24,10 @@ typedef struct {
 
 /* prototypes */
 char * ftp_getline(ftp_t*);
+char * ftp_getdataport(ftp_t*);
 char * ftp_pwd(ftp_t *ftp);
 int ftp_banner(ftp_t*);
 int ftp_login(ftp_t*);
-int ftp_getdataport(ftp_t*);
 int ftp_size(ftp_t*, char*);
 void ftp_list(ftp_t*, char*,int);
 void ftp_remove(ftp_t*, char*);

@@ -1,4 +1,4 @@
 Thanks to
 ===========
 
-# name (email) - (comment)
+# Jamie Bainbridge (jamie.bainbridge@gmail.com) - Tidy of tcp_connect functions

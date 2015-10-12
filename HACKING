@@ -54,10 +54,10 @@ Functions and files
 ftp.h
 ~~~~~~
 char * ftp_getline(ftp_t*);
+char * ftp_getdataport(ftp_t*);
 char * ftp_pwd(ftp_t *ftp);
 int ftp_banner(ftp_t*);
 int ftp_login(ftp_t*);
-int ftp_getdataport(ftp_t*);
 int ftp_size(ftp_t*, char*);
 void ftp_list(ftp_t*, char*,int);
 void ftp_remove(ftp_t*, char*);
@@ -72,8 +72,7 @@ void ftp_mdtm(ftp_t*, char*);
 
 tcp.h
 ~~~~~~
-FILE * tcp_connect(char*, char*);
-FILE * tcp_connect2(char*, int, char*);
+FILE * tcp_connect(char*, char*, char*);
 
 utils.h
 ~~~~~~~~
