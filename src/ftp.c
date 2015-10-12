@@ -132,7 +132,9 @@ void ftp_download(ftp_t *ftp, char *path) {
 	char *line = NULL;
 	char buffer[MAX_STR];
 	FILE *data;
-	
+	int co = 0;
+
+	ftp->alarm_sec = 3;
 	fprintf(ftp->FD, "SIZE %s\r\n", path);
 	line = ftp_getline(ftp);
 	ftp->code = atoi(line);
@@ -140,23 +142,25 @@ void ftp_download(ftp_t *ftp, char *path) {
 	if ( ftp->code == 213 ) {
 		ftp_mkcon(ftp);
 		ftp_download_single(ftp, path, 1);
-		ftp_close(ftp);
 	}
 	else {
+		/* TODO: add download time */
+		print(0, "%sStarting download from%s %s\'%s\'%s ...",YEL,END,GREEN,path,END); 
 		ftp->dataport = ftp_getdataport(ftp);
 		fprintf(ftp->FD, "NLST %s\r\n", path);
 		data = tcp_connect(ip, ftp->dataport, "r");
 		ftp_getline(ftp);
-		/*if ( chdir(folder_name) == -1 )
-			die("Cannot chdir to \'%s\' ...", folder_name);*/
 
 		while ( fgets(buffer, sizeof(buffer), data)) {
 			buffer[strlen(buffer)-2] = '\0';
 			ftp_mkcon(ftp);
 			ftp_download_single(ftp, buffer, 0);
-		}	
+			co++;
+		}
 		fclose(data);
 		close(dfd);
+		print(0, "%sFinished! downloaded %s %s%d files. %s", GREEN,END,
+			YEL,co,END, path);
 	}
 }
 
@@ -185,7 +189,7 @@ void ftp_download_single(ftp_t *ftp, char *path, int vb) {
 	/* Check if file exists before downloading */
 	if (util_file_exists(filename) == 1 ) {
 		print(1, "%s\'%s\' already exists.%s", WHT,filename,END);
-		exit(0);
+		return;
 	}
 
 	fsize = (int)ftp_size(ftp, path);

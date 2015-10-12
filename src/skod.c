@@ -328,6 +328,7 @@ int main(int argc, char **argv) {
 	}
 
 	ftp_close(&ftp);
+
 	return 0;
 }
 
