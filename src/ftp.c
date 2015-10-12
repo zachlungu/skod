@@ -299,19 +299,6 @@ void ftp_cat(ftp_t *ftp, char *path) {
 	close(dfd);
 }
 
-/* Delete file/directory */
-void ftp_remove(ftp_t *ftp, char *path) {
-	char *line = NULL;
-		
-	fprintf(ftp->FD, "DELE %s\r\n", path);
-	line = ftp_getline(ftp);
-	ftp->code = atoi(line);
-	if ( ftp->code == 250 )
-		print(0, "=> \'%s\' deleted.", path);
-	else
-		print(1, "=> \'%s\' not removed.", path);
-}
-
 /* Get list of files 
  * opt:
  * 1 - NLST
