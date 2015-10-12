@@ -42,9 +42,9 @@ void skod_usage(char *arg) {
 		"\t--rm          -r : Remove files/direcotrys.\n"
 		"\t--cat         -c : Print files.\n"
 		"\t--pwd         -w : Print current working directory.\n"
-		"\t--download    -d : Download file.\n"
+		"\t--download    -d : Download files.\n"
 		"\t--upload      -U : Upload file.\n"
-		"\t--dest        -e : Destination folder (for --upload).\n"
+		"\t--dest        -e : Destination folder (for --upload/--download).\n"
 		"\t--size        -z : Get file size.\n"
 		"\t--delete      -D : Delete files/folders.\n"
 		"\t--mdtm        -m : Return the modification time of a file.\n"
@@ -289,8 +289,10 @@ int main(int argc, char **argv) {
 	/* --dest, -e*/
 	if ( skod.dest != NULL )
 		ftp_cwd(&ftp, skod.dest);
-	else if ( skod.dest == NULL && flag == 4 )
-		die("You need to pass --dest (destination folder) with --upload.");
+	else if ( skod.dest == NULL ) {
+		if ( flag == 3 || flag == 4 )
+			die("You need to pass --dest (destination folder) with --download/--upload.");
+	}
 
 	switch(flag) {
 		case 1:
@@ -300,7 +302,7 @@ int main(int argc, char **argv) {
 			ftp_remove(&ftp, skod.path);
 			break;
 		case 3:
-			ftp_download_single(&ftp, skod.path);
+			ftp_download(&ftp, skod.path);
 			break;
 		case 4:
 			ftp_upload_single(&ftp, skod.path);

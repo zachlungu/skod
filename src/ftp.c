@@ -27,16 +27,24 @@ void ftp_mdtm(ftp_t *ftp, char *path) {
 			act[0], act[1],act[2], act[3]);
 }
 
-/* Change working directory for --dest. 
- * Will work only with --upload */
+/* Change working directory for --dest */
 void ftp_cwd(ftp_t *ftp, char *path) {
 	char *line = NULL;
 
-	fprintf(ftp->FD, "CWD %s\r\n", path);
-	line = ftp_getline(ftp);
-	ftp->code = atoi(line);
-	if ( ftp->code == 550 )
-		die("Failed to change directory to %s\'%s\'%s.", RED,END);
+	/* if download */ 
+	if ( flag == 3 ) {
+		if ( chdir(path) == -1 )
+			die("Cannot change direcotry to \'%s\' ...", path);
+	}
+
+	/* if upload */
+	if ( flag == 4 ) {
+		fprintf(ftp->FD, "CWD %s\r\n", path);
+		line = ftp_getline(ftp);
+		ftp->code = atoi(line);
+		if ( ftp->code == 550 )
+			die("Failed to change directory to %s\'%s\'%s.", RED,END);
+	}
 }
 
 /* delete file/folder  from the server */
@@ -119,8 +127,42 @@ void ftp_upload_single(ftp_t *ftp, char *path) {
 	close(dfd);
 }
 
+/* download files/folders */
+void ftp_download(ftp_t *ftp, char *path) {
+	char *line = NULL;
+	char buffer[MAX_STR];
+	FILE *data;
+	
+	fprintf(ftp->FD, "SIZE %s\r\n", path);
+	line = ftp_getline(ftp);
+	ftp->code = atoi(line);
+
+	if ( ftp->code == 213 ) {
+		ftp_mkcon(ftp);
+		ftp_download_single(ftp, path, 1);
+		ftp_close(ftp);
+	}
+	else {
+		ftp->dataport = ftp_getdataport(ftp);
+		fprintf(ftp->FD, "NLST %s\r\n", path);
+		data = tcp_connect(ip, ftp->dataport, "r");
+		ftp_getline(ftp);
+		/*if ( chdir(folder_name) == -1 )
+			die("Cannot chdir to \'%s\' ...", folder_name);*/
+
+		while ( fgets(buffer, sizeof(buffer), data)) {
+			buffer[strlen(buffer)-2] = '\0';
+			ftp_mkcon(ftp);
+			ftp_download_single(ftp, buffer, 0);
+		}	
+		fclose(data);
+		close(dfd);
+	}
+}
+
+
 /* download single file from the FTP server */
-void ftp_download_single(ftp_t *ftp, char *path) {
+void ftp_download_single(ftp_t *ftp, char *path, int vb) {	
 	char *line = NULL;
 	FILE *data;
 	FILE *fp;
@@ -167,7 +209,7 @@ void ftp_download_single(ftp_t *ftp, char *path) {
 			buffer[rsize +1] = '\0';
 		dsize += fwrite(buffer, 1, rsize, fp);
 		calc_bytes(&d2, dsize);
-		print(3, "%s Downloading %s\'%s\'%s (%.2f%c) %.2f %c\b\b\b\b\b\r", WHT,GREEN,
+		print(3, "%s Downloading %s\'%s\'%s (%.2f%c) %.2f %c\r", WHT,GREEN,
 				filename,END,
 				d1.bytes, d1.bytes_postfix,
 				d2.bytes, d2.bytes_postfix);
@@ -179,19 +221,23 @@ void ftp_download_single(ftp_t *ftp, char *path) {
 	fseek(fp, 0L, SEEK_SET);
 		
 	/* All good */
-	if ( lsize == fsize )
-		print(0, "File %s\'%s\'%s saved.", GREEN,filename,END);
+	if ( lsize == fsize ) {
+		if ( vb == 1 )
+			print(0, "File %s\'%s\'%s saved.", GREEN,filename,END);
+	}
 	else {
 		/* inetutils <=1.9.4, 
 		 * This bug discoverd by me in 05-10-2015,
 		 *  SIZE command return file_size+23 bytes*/
 		if ( lsize+23 == fsize ) {
-			print(0, "File \'%s\' saved.", GREEN,filename,END);
-			print(0, "%sYou have unpatched version of inetutils 1.x.x please upgrade.%s", YEL,END);
+			if ( vb == 1) {
+				print(0, "File \'%s\' saved.", GREEN,filename,END);
+				print(0, "%sYou have unpatched version of inetutils 1.x.x please upgrade.%s", YEL,END);
+			}
 		}
 		/* Bad */
 		else
-			print(1, "File %s\'%s\'%s is corrupted, try downloading it again?", RED,filename,END);
+			print(0, "Error: File %s\'%s\'%s is corrupted, try downloading it again?", RED,filename,END);
 	}
 	fclose(fp);
 	fclose(data);
