@@ -299,7 +299,7 @@ int main(int argc, char **argv) {
 			ftp_list(&ftp, skod.path, 1);
 			break;
 		case 2:
-			ftp_remove(&ftp, skod.path);
+			ftp_delete(&ftp, skod.path);
 			break;
 		case 3:
 			ftp_download(&ftp, skod.path);
