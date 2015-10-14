@@ -36,10 +36,10 @@ void skod_usage(char *arg) {
 		"\nOPTIONS:\n"
 		"\t--server      -s : FTP server host.\n"
 		"\t--user        -u : FTP username (anonymous).\n"
-		"\t--password    -p : FTP password. (anonymous)\n"
+		"\t--password    -p : FTP password (anonymous).\n"
 		"\t--port        -P : FTP server port (21).\n"
 		"\t--ls          -l : List directory contents.\n"
-		"\t--rm          -r : Remove files/direcotrys.\n"
+		"\t--rm          -r : Remove files/directories.\n"
 		"\t--cat         -c : Print files.\n"
 		"\t--pwd         -w : Print current working directory.\n"
 		"\t--download    -d : Download files.\n"
@@ -49,8 +49,8 @@ void skod_usage(char *arg) {
 		"\t--delete      -D : Delete files/folders.\n"
 		"\t--mdtm        -m : Return the modification time of a file.\n"
 		"\t--scan        -S : Get information about the server.\n"
-		"\t--help        -h : show help.\n"
-		"\t--version     -v : show version.\n"
+		"\t--help        -h : Show help.\n"
+		"\t--version     -v : Show version.\n"
 		"%s\n%sskod - File Transfer Protocol client for humans.\n"
 		"Full documentation at: <https://github.com/Hypsurus/skod>%s\n",WHT,arg, END,YEL,END);
 		exit(0);
