@@ -3,4 +3,6 @@
 
 * added support for downloading folder.
 * tidy tcp_connect functionstcp: tidy tcp_connect functions.
+* added support for install/uninstall in Makefile.
+* added bash-completion.
 

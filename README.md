@@ -24,6 +24,10 @@ Build
 
 > Run `make` to compile skod.
 
+* Install (Run with sudo )
+
+> `make install`
+
 Usage
 =======
 
