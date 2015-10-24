@@ -6,6 +6,11 @@ Written in pure C, without any external library.
 
 ![logo](https://github.com/Hypsurus/skod/wiki/screenshots/skod_logo.png)
 
+TODO
+=====
+
+1. Art - new logo (i'm not a designer)
+
 Features
 ==========
 
@@ -36,11 +41,11 @@ but you can use `-u, -p` to provide username, and password.
 
 skod is user-friendly and easy to use, follow the screenshots:
 
-##### skod -s localhost -u root -p root --list "/"
+##### skod -s localhost --user root --password pass --ls "/"
 
 ![list](https://github.com/Hypsurus/skod/wiki/screenshots/skod_list.png)
 
-#####  skod -s localhost -u root -u pass --download "/file.ogv"
+#####  skod -s localhost --user root --password pass --download "/file.x"
 
 ![download](https://github.com/Hypsurus/skod/wiki/screenshots/skod_download.png)
 
