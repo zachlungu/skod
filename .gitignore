@@ -39,5 +39,5 @@
 *.dSYM/
 
 # Skod binary
-src/skod
+skod
 
