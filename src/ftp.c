@@ -145,7 +145,7 @@ void ftp_download(ftp_t *ftp, char *path) {
 	}
 	else {
 		/* TODO: add download time */
-		print(0, "%sStarting download from%s %s\'%s\'%s ...",YEL,END,GREEN,path,END); 
+		print(3, ">>> %sStart downloading from%s %s\'%s\'%s ...\n",YEL,END,GREEN,path,END); 
 		ftp->dataport = ftp_getdataport(ftp);
 		fprintf(ftp->FD, "NLST %s\r\n", path);
 		data = tcp_connect(ip, ftp->dataport, "r");
@@ -159,7 +159,7 @@ void ftp_download(ftp_t *ftp, char *path) {
 		}
 		fclose(data);
 		close(dfd);
-		print(0, "%sFinished! downloaded %s %s%d files. %s", GREEN,END,
+		print(0, ">>> %sFinished! we have %s%s%d files (:%s", GREEN,END,
 			YEL,co,END, path);
 	}
 }
@@ -172,6 +172,7 @@ void ftp_download_single(ftp_t *ftp, char *path, int vb) {
 	FILE *fp;
 	char buffer[MAX_STR];
 	char *filename = NULL;
+	char file_size[MAX_STR];
 	long int dsize = 0;
 	int rsize = 0;
 	long int fsize = 0;
@@ -208,14 +209,16 @@ void ftp_download_single(ftp_t *ftp, char *path, int vb) {
 		die("Cannot create %s.", filename);
 
 	calc_bytes(&d1, fsize);
+	sprintf(file_size, "[%.2f%c]", d1.bytes ? d1.bytes : 0, d1.bytes_postfix);
+
 	while(( rsize = fread(buffer, 1, sizeof(buffer), data) ) > 0 ) {
 		if ( buffer[rsize +1] == '\r' )
 			buffer[rsize +1] = '\0';
 		dsize += fwrite(buffer, 1, rsize, fp);
 		calc_bytes(&d2, dsize);
-		print(3, "%s Downloading %s\'%s\'%s (%.2f%c) %.2f %c\r", WHT,GREEN,
+		print(3, "\r%sDownloading %s\'%s\'%s %s %.2f%c\r", WHT,GREEN,
 				filename,END,
-				d1.bytes, d1.bytes_postfix,
+				file_size,
 				d2.bytes, d2.bytes_postfix);
 		fflush(stdout);
 	}
