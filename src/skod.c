@@ -46,7 +46,6 @@ void skod_usage(char *arg) {
 		"\t--upload      -U : Upload file.\n"
 		"\t--dest        -e : Destination folder (for --upload/--download).\n"
 		"\t--size        -z : Get file size.\n"
-		"\t--delete      -D : Delete files/folders.\n"
 		"\t--mdtm        -m : Return the modification time of a file.\n"
 		"\t--scan        -S : Get information about the server.\n"
 		"\t--help        -h : Show help.\n"
@@ -190,13 +189,12 @@ void skod_parse_cla(int argc, char **argv, skod_t *skod) {
 		{"dest",     required_argument, 0, 'e'},
 		{"size",     required_argument, 0, 'z'},
 		{"password", required_argument, 0, 'p'},
-		{"delete",   required_argument, 0, 'D'},
 		{"mdtm",     required_argument, 0, 'm'},
 		{"pwd",      no_argument,       0, 'w'},
 		{"help",     no_argument,       0, 'h'},
 		{"version",  no_argument,       0, 'v'},};
 
-	while (( opt = getopt_long(argc, argv, "s:SP:u:p:l:r:d:U:c:z:D:we:m:hv", longopt, &index)) != -1 ) {
+	while (( opt = getopt_long(argc, argv, "s:SP:u:p:l:r:d:U:c:z:we:m:hv", longopt, &index)) != -1 ) {
 		chkbuffer(optarg);
 		switch(opt) {
 			case 's':
@@ -240,10 +238,6 @@ void skod_parse_cla(int argc, char **argv, skod_t *skod) {
 				break;
 			case 'w':
 				flag = 7;
-				break;
-			case 'D':
-				flag = 8;
-				skod->path = optarg;
 				break;
 			case 'e':
 				skod->dest = optarg;
@@ -315,9 +309,6 @@ int main(int argc, char **argv) {
 			break;
 		case 7:
 			printf("%s\n", ftp_pwd(&ftp));
-			break;
-		case 8:
-			ftp_delete(&ftp, skod.path);
 			break;
 		case 10:
 			ftp_mdtm(&ftp, skod.path);
