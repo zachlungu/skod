@@ -13,10 +13,10 @@ void print(int mode,char *format, ...) {
 
 	switch(mode) {
 		case 0:
-			printf("%s::%s %s\n", WHT,END,tmp);
+			printf("%s%s%s\n", WHT,END,tmp);
 			break;
 		case 1:
-			printf("%s::%s %sError:%s %s\n", WHT,END,RED,END,tmp);
+			printf("%s%s%sError:%s %s\n", WHT,END,RED,END,tmp);
 			break;
 		/* debug */
 		case 2:
@@ -24,7 +24,7 @@ void print(int mode,char *format, ...) {
 			break;
 		/* print without new line */
 		case 3:
-			printf("%s::%s %s", WHT,END,tmp);
+			printf("%s%s%s", WHT,END,tmp);
 			break;
 	}
 }
