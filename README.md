@@ -6,6 +6,9 @@ Written in pure C, without any external library.
 
 ![logo](https://github.com/Hypsurus/skod/wiki/screenshots/skod_logo.png)
 
+###### Skod is unstable!, use it at your own risk!
+###### I need to add more code, but I dont have time to do it.
+
 TODO
 =====
 
