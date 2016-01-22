@@ -32,7 +32,7 @@ skod:
 
 # Install skod
 install: all
-	cp ${SRC_DIR}/${BIN}.bash_completion ${PREFIX}/${BC_LOCATION}/skod
+	cp bash_completion ${PREFIX}/${BC_LOCATION}/skod
 	install -Dm775 skod ${PREFIX}/bin/skod
 
 # Remove skod
