@@ -407,9 +407,6 @@ char * ftp_getline(ftp_t *ftp) {
 	static char line[MAX_STR];
 	char *s = NULL;
 
-	signal(SIGALRM, signal_handler);
-	alarm(ftp->alarm_sec);
-
 	while (( fgets(line, sizeof(line), ftp->FD)) != NULL ) {
     	/* Avoid the comments when connecting to server */
 		if (strtol(line, &s, 10) != 0 && s != NULL) {
@@ -420,8 +417,7 @@ char * ftp_getline(ftp_t *ftp) {
             	return line;
             }
         }
-	}
-		
+	}		
 	return "None\n";
 }
 
