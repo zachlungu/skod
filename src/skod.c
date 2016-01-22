@@ -17,7 +17,6 @@
 *
 */
 
-
 #include "skod.h"
 #include "skod_data.h"
 
@@ -276,7 +275,7 @@ int main(int argc, char **argv) {
 	ftp.password = skod.password;
 	ftp.server = skod.server;
 	ftp.port = skod.port;
-	ftp.alarm_sec = 1; /* High risk */
+	ftp.alarm_sec = 3; /* High risk */
 
 	ftp_mkcon(&ftp);
 

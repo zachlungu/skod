@@ -5,6 +5,11 @@
 /* Connect to TCP/IP socket */
 FILE * tcp_connect(char *server, char *port, char *mode) {
 	struct addrinfo ai, *srv = NULL, *p = NULL;
+	struct timeval timeout;
+
+	/* Set time-out*/
+	timeout.tv_sec = 2;
+	timeout.tv_usec = 0;
 
 	memset(&ai, 0, sizeof(struct addrinfo));
 	if (( getaddrinfo(server, port, &ai, &srv)) != 0 ) {
@@ -30,6 +35,13 @@ FILE * tcp_connect(char *server, char *port, char *mode) {
 	if ( connect(fd, p->ai_addr, p->ai_addrlen) < 0 )
 		die("Failed to connect.");
 	freeaddrinfo(srv);
+
+	if (setsockopt (fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,
+				sizeof(timeout)) < 0)
+		die("Socket timeout.");
+	if (setsockopt (fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,
+				sizeof(timeout)) < 0)
+		die("Socket timeout.");
 
 	/* call to fdopen to return FILE */
 	return (fdopen(fd, mode));
