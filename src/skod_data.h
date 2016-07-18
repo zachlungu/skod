@@ -1,10 +1,7 @@
 /* skod_data.h - This file conatin the skod DATA for multiple tasks*/
 
-/* FTP prod */
-#define SKOD_PROD_UNKNOWN "unknown"
-
 /* OS */
-#define SKOD_OS_NIX	"Linux" /* *NIX 8 */
+#define SKOD_OS_NIX	"Linux" /* *NIX 8*/
 #define SKOD_OS_NT	"Windows NT"
 #define SKOD_OS_UNKNOWN "unknown"
 
@@ -15,8 +12,8 @@ typedef struct {
 } hcf_t;
 
 const char *ftp_commands[] = {
-	"NOTEXISTS", /* This is just to see how to server will respone to unvaild command. */
-	"PASS", /* Just to see whats the output. */
+	"NOTEXISTS", /* This is just to see how to server will responed to unvaild command. */
+	"PASS",
 	"ALLO", 
 	"USER", /* This changes from server to server. */
 };
