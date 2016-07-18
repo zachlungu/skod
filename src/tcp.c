@@ -1,4 +1,4 @@
-/* tcp.c - TCP/IP stuff */
+/* tcp.c - TCP/IP fucntion create the connection to the FTP server. */
 
 #include "tcp.h"
 
@@ -13,7 +13,7 @@ FILE * tcp_connect(char *server, char *port, char *mode) {
 
 	memset(&ai, 0, sizeof(struct addrinfo));
 	if (( getaddrinfo(server, port, &ai, &srv)) != 0 ) {
-		die("Cannot resolve %s - (%s)", server,gai_strerror(1));
+		print(PERROR, TRUE,"Cannot resolve %s - (%s)", server,gai_strerror(1));
 	}
 
 	ai.ai_family = AF_UNSPEC;
@@ -26,22 +26,22 @@ FILE * tcp_connect(char *server, char *port, char *mode) {
 					ip, sizeof(ip),
 					NULL, (socklen_t) 0U, 
 					NI_NUMERICHOST)) != 0)
-		die("Cannot resolve %s- (%s).", server,gai_strerror(1));
+		print(PERROR, TRUE,"Cannot resolve %s- (%s).", server,gai_strerror(1));
 
 	/* skod.h //int fd */
 	if (( fd = socket(p->ai_family, p->ai_socktype, 0)) < 0 )
-		die("Failed to create socket.");
+		print(PERROR, TRUE,"Failed to create socket.");
 
 	if ( connect(fd, p->ai_addr, p->ai_addrlen) < 0 )
-		die("Failed to connect.");
+		print(PERROR, TRUE,"Failed to connect.");
 	freeaddrinfo(srv);
 
 	if (setsockopt (fd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout,
 				sizeof(timeout)) < 0)
-		die("Socket timeout.");
+		print(PERROR, TRUE,"Socket timeout.");
 	if (setsockopt (fd, SOL_SOCKET, SO_SNDTIMEO, (char *)&timeout,
 				sizeof(timeout)) < 0)
-		die("Socket timeout.");
+		print(PERROR, TRUE,"Socket timeout.");
 
 	/* call to fdopen to return FILE */
 	return (fdopen(fd, mode));
