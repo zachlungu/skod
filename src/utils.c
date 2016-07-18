@@ -2,49 +2,45 @@
 
 #include "utils.h"
 
-/** usage: print(mode, msg) **/
-void print(int mode,char *format, ...) {
-	char tmp[MAX_STR];
-
+void print(int type, int quit, char *format, ...) {
+	char msg[MAX_STR];
 	va_list li;
+
 	va_start(li, format);
-	vsprintf(tmp, format, li);
+	vsprintf(msg, format, li);
 	va_end(li);
 
-	switch(mode) {
-		case 0:
-			printf("%s%s%s\n", WHT,END,tmp);
+	switch(type) {
+		case PINFO:
+			printf("%s%s%s\n", WHT, END, msg);
 			break;
-		case 1:
-			printf("%s%s%sError:%s %s\n", WHT,END,RED,END,tmp);
+		case PERROR:
+			printf("%s/X/%s %s\n", RED, END, msg);
 			break;
 		/* debug */
-		case 2:
-			printf("%s:: DEBUG ::%s%s %s%s", CYN,END,YEL,tmp,END);
+		case PDEBUG:
+			printf("%s/d/%s %s", YEL, END, msg);
+			break;
+		case PSUCCESS:
+			printf("%s/s/%s %s", GREEN, END, msg);
 			break;
 		/* print without new line */
-		case 3:
-			printf("%s%s%s", WHT,END,tmp);
+		case PNNL:
+			printf("%s", msg);
 			break;
 	}
+
+	if ( quit ) exit(0);
 }
 
-void die(char *format, ...) {
-	va_list li;
-	char tmp[MAX_STR];
-
-	va_start(li,format);
-	vsprintf(tmp, format, li);
-	printf("%s::%s %sError%s %s%s%s\n", RED,END,WHT,END,YEL,tmp,END);
-	va_end(li);
-	exit(1);
-}
+/* Will check buffer size */
 void chkbuffer(char *buffer) {
 	int i = 0;
+	
 	if ( buffer ) {
 		for ( i = 0; buffer[i] != 0; i++) {
 			if ( i > MAX_STR-6 )
-				die("You cannot pass this string.");
+				print(PERROR, TRUE,"You cannot pass this string.");
 		}
 	}
 }
@@ -60,12 +56,12 @@ void signal_handler(int sig) {
 		fd = -1;
 	}
 	if ( sig == SIGINT ) {
-		print(3, "%ssInterrrupt ... %s\n", YEL,END);
 		close(fd);
-		exit(1);
+		print(PERROR, TRUE, "%ssInterrrupt ... %s\n", YEL,END);
 	}
 }
 
+/* Calc bytes size for recived bytes.. */
 void calc_bytes(data_t *data, float bytes) {                   
 	if ( bytes >= 1024.0 ) {
 		data->bytes = bytes / 1024;

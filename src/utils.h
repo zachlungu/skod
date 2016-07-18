@@ -16,6 +16,8 @@
 #define WHT  "\x1B[37m"
 #define END "\033[0m"
 
+enum { PINFO ,PERROR, PNNL, PDEBUG, PSUCCESS};
+
 /* Handle data */
 typedef struct {
 	float bytes;
@@ -25,7 +27,7 @@ typedef struct {
 /* prototypes */
 int util_file_exists(char*);
 void calc_bytes(data_t *, float);
-void print(int mode,char*, ...);
+void print(int mode,int exit, char*, ...);
 void die(char*, ...);
 void signal_handler(int);
 void chkbuffer(char*);
