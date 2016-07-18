@@ -26,7 +26,7 @@ void skod_init(skod_t *skod) {
 	skod->port = FTP_PORT;
 	skod->server = NULL;
 	skod->os = SKOD_OS_UNKNOWN;
-	skod->prod = SKOD_PROD_UNKNOWN;
+	skod->prod = "unknown";
 	skod->dest = NULL;
 }
 
@@ -65,10 +65,9 @@ void skod_parse_stat(skod_t *skod, ftp_t *ftp) {
 		while (( fgets(buffer, sizeof(buffer), ftp->FD)) != NULL ) {
 			for ( p = ftp_prod; *p;p++ ) {
 				if ( strstr(buffer, *p))
-					print(3, "%s", buffer);
+					print(PINFO, FALSE, "%s", buffer);
 			}
 		}
-				print(0, " ");
 	}
 	ftp_close(ftp);
 	ftp_mkcon(ftp);
@@ -82,7 +81,7 @@ void skod_parse_stat(skod_t *skod, ftp_t *ftp) {
 		skod->os = SKOD_OS_NT;
 }
 
-/** FINGERPRINT **/
+/* Geberate fingerprint.. */
 unsigned long skod_checksum(char *str) {
 	unsigned long sum = 0UL;
 
@@ -94,7 +93,7 @@ unsigned long skod_checksum(char *str) {
 	return sum;
 }
 
-char * skod_hc_fingerprint(ftp_t *ftp) {
+char * skod_fingerprint(ftp_t *ftp) {
 	char *line = NULL;
 	const char **ptr = NULL;
 	unsigned long sum = 0;
@@ -127,14 +126,14 @@ char * skod_hc_fingerprint(ftp_t *ftp) {
 
 /* Parse Hardcore fingerprints 
  * Format: 000:000:000:000:000:000:000 */
-void skod_hc_fingerprint_parse(skod_t *skod, ftp_t *ftp, int p) {
+void skod_fingerprint_parse(skod_t *skod, ftp_t *ftp, int p) {
 	const hcf_t *h = hcf_fingerprints;
 	const char *hcf = NULL;
 	int hcf_size = sizeof(hcf_fingerprints) / sizeof(hcf_fingerprints[0]);
 
-	hcf = skod_hc_fingerprint(ftp);
-	print(0,"HC fingerpirnt: %s%s%s ", RED,hcf,END);
-	print(0, " ");
+	hcf = skod_fingerprint(ftp);
+	print(PINFO,FALSE, "[*] Fingerpirnt: %s%s%s ", RED,hcf,END);
+	print(PINFO, FALSE, " ");
 	while ( hcf_size != 0 ) {
 		if (( strcmp(hcf, h->print)) == 0 ) {
 			skod->prod = h->prod;
@@ -150,12 +149,11 @@ void skod_scan(skod_t *skod, ftp_t *ftp) {
 	int v = 0;
 	ftp->alarm_sec = 3;
 
-	print(0, "%sStarting skod %s - scanning %s%s%s%s ...", WHT,PACKAGE_VERSION,END, GREEN, ftp->server, END);
-	print(0, " ");
+	print(PINFO, FALSE, "%s[*] Starting skod %s - scanning %s%s%s%s ...", WHT,PACKAGE_VERSION,END, GREEN, ftp->server, END);
 	skod_parse_stat(skod, ftp);
-	print(0, "%sGenerating fingerprint %s ...", WHT,END);
-	skod_hc_fingerprint_parse(skod, ftp, v);
-	print(0, "%sHmm%s... %s%s%s server running %s%s%s.",WHT,END,GREEN,skod->os,END,YEL,skod->prod,END);
+	print(PINFO, FALSE, "%s[*] Generating fingerprint %s ...", WHT,END);
+	skod_fingerprint_parse(skod, ftp, v);
+	print(PINFO, FALSE, "[*] %s%s%s server running %s%s%s.", GREEN,skod->os,END,YEL,skod->prod,END);
 }
 
 
@@ -169,7 +167,7 @@ void skod_detect_ip(void) {
 	else if ( inet_pton(AF_INET6, ip, &addr6.s6_addr))
 		ipv6 = 1;
 	else
-		die("Failed to detect %s IP version.", ip);
+		print(PERROR, TRUE, "Failed to detect %s IP version.", ip);
 }
 
 void skod_parse_cla(int argc, char **argv, skod_t *skod) {
@@ -200,7 +198,7 @@ void skod_parse_cla(int argc, char **argv, skod_t *skod) {
 				skod->server = optarg;
 				break;
 			case 'S':
-				flag = 99;
+				flag = SKOD_SCAN;
 				break;
 			case 'P':
 				skod->port = optarg;
@@ -213,36 +211,36 @@ void skod_parse_cla(int argc, char **argv, skod_t *skod) {
 				break;
 			case 'l':
 				skod->path = optarg;
-				flag = 1; 
+				flag = SKOD_LS; 
 				break;
 			case 'r':
 				skod->path = optarg;
-				flag = 2;
+				flag = SKOD_REMOVE;
 				break;
 			case 'd':
 				skod->path = optarg;
-				flag = 3;
+				flag = SKOD_DOWNLOAD;
 				break;
 			case 'U':
 				skod->path = optarg;
-				flag = 4;
+				flag = SKOD_UPLOAD;
 				break;
 			case 'c':
 				skod->path = optarg;
-				flag = 5;
+				flag = SKOD_CAT;
 				break;
 			case 'z':
 				skod->path = optarg;
-				flag = 6;
+				flag = SKOD_FSIZE;
 				break;
 			case 'w':
-				flag = 7;
+				flag = SKOD_PWD;
 				break;
 			case 'e':
 				skod->dest = optarg;
 				break;
 			case 'm':
-				flag = 10;
+				flag = SKOD_MDTM;
 				skod->path = optarg;
 				break;
 			case 'h':
@@ -254,11 +252,11 @@ void skod_parse_cla(int argc, char **argv, skod_t *skod) {
 	if ( argc < 2 )
 		skod_usage(argv[0]);
 	if ( skod->server == NULL ) {
-		print(1, "Please provide server (-s).");
+		print(PINFO, FALSE, "Please provide server (-s).");
 		skod_usage(argv[0]);
 	}
 	if ( flag == 0 )
-		die("%sPlease specify option (try --help).%s", WHT,END);
+		print(PERROR, TRUE,"%sPlease specify option (try --help).%s", WHT,END);
 }
 
 int main(int argc, char **argv) {
@@ -270,7 +268,6 @@ int main(int argc, char **argv) {
 
 	signal(SIGINT, signal_handler);
 
-	/* Init FTP*/
 	ftp.user = skod.user;
 	ftp.password = skod.password;
 	ftp.server = skod.server;
@@ -279,40 +276,37 @@ int main(int argc, char **argv) {
 
 	ftp_mkcon(&ftp);
 
-	/* --dest, -e*/
 	if ( skod.dest != NULL )
 		ftp_cwd(&ftp, skod.dest);
 	else if ( skod.dest == NULL ) {
 		if ( flag == 3 || flag == 4 )
-			die("You need to pass --dest (destination folder) with --download/--upload.");
+			print(PERROR, TRUE,"You need to pass --dest (destination folder) with --download/--upload.");
 	}
 
 	switch(flag) {
-		case 1:
+		case SKOD_LS:
 			ftp_list(&ftp, skod.path, 1);
 			break;
-		case 2:
+		case SKOD_REMOVE:
 			ftp_delete(&ftp, skod.path);
 			break;
-		case 3:
-			ftp_download(&ftp, skod.path);
+		case SKOD_DOWNLOAD:
 			break;
-		case 4:
-			ftp_upload_single(&ftp, skod.path);
+		case SKOD_UPLOAD:
 			break;
-		case 5:
+		case SKOD_CAT:
 			ftp_cat(&ftp, skod.path);
 			break;
-		case 6:
+		case SKOD_FSIZE:
 			printf("%d\n", ftp_size(&ftp, skod.path));
 			break;
-		case 7:
+		case SKOD_PWD:
 			printf("%s\n", ftp_pwd(&ftp));
 			break;
-		case 10:
+		case SKOD_MDTM:
 			ftp_mdtm(&ftp, skod.path);
 			break;
-		case 99:
+		case SKOD_SCAN:
 			skod_scan(&skod, &ftp);
 			break;
 	}

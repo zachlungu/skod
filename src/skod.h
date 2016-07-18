@@ -25,13 +25,16 @@
 #include "ftp.h"
 
 char ip[MAX_STR];
-enum { False=0, True=1 };
+enum { FALSE, TRUE};
 
-/* fot socket */
+/* For the command line arguments flag. */
+enum { SKOD_LS, SKOD_PWD, SKOD_MDTM,
+			 SKOD_DOWNLOAD, SKOD_UPLOAD,
+			 SKOD_REMOVE, SKOD_FSIZE, 
+			 SKOD_SCAN, SKOD_CAT};
+
 int fd;
 int dfd;
-
-/* Flags */
 int flag;
 int ipv4;
 int ipv6;
