@@ -8,7 +8,7 @@ FILE * tcp_connect(char *server, char *port, char *mode) {
 	struct timeval timeout;
 
 	/* Set time-out*/
-	timeout.tv_sec = 2;
+	timeout.tv_sec = 1;
 	timeout.tv_usec = 0;
 
 	memset(&ai, 0, sizeof(struct addrinfo));
@@ -28,7 +28,6 @@ FILE * tcp_connect(char *server, char *port, char *mode) {
 					NI_NUMERICHOST)) != 0)
 		print(PERROR, TRUE,"Cannot resolve %s- (%s).", server,gai_strerror(1));
 
-	/* skod.h //int fd */
 	if (( fd = socket(p->ai_family, p->ai_socktype, 0)) < 0 )
 		print(PERROR, TRUE,"Failed to create socket.");
 
@@ -43,7 +42,6 @@ FILE * tcp_connect(char *server, char *port, char *mode) {
 				sizeof(timeout)) < 0)
 		print(PERROR, TRUE,"Socket timeout.");
 
-	/* call to fdopen to return FILE */
 	return (fdopen(fd, mode));
 }
 
