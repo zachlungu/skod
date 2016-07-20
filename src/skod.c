@@ -1,6 +1,6 @@
-/*   skod.c -   File transfer protocol client for humans.            
+/* skod.c -   File transfer protocol client for humans.            
 *		    
-* Copyright (c) 2015 by Hypsurus <hypsurus@mail.ru>     
+* Copyright (c) 2015, 2016 Hypsurus <hypsurus@mail.ru> 
 *
 * skod is free software; you can redistribute it and/or modify
 * it under the terms of the GNU General Public License as published by
@@ -132,7 +132,7 @@ void skod_fingerprint_parse(skod_t *skod, ftp_t *ftp, int p) {
 	int hcf_size = sizeof(hcf_fingerprints) / sizeof(hcf_fingerprints[0]);
 
 	hcf = skod_fingerprint(ftp);
-	print(PINFO,FALSE, "[*] Fingerpirnt: %s%s%s ", RED,hcf,END);
+	print(PINFO, FALSE, "Fingerpirnt: %s%s%s", RED,hcf,END);
 	print(PINFO, FALSE, " ");
 	while ( hcf_size != 0 ) {
 		if (( strcmp(hcf, h->print)) == 0 ) {
@@ -144,20 +144,17 @@ void skod_fingerprint_parse(skod_t *skod, ftp_t *ftp, int p) {
 	}
 }
 
-/* skod scan */
 void skod_scan(skod_t *skod, ftp_t *ftp) {
 	int v = 0;
 	ftp->alarm_sec = 3;
 
-	print(PINFO, FALSE, "%s[*] Starting skod %s - scanning %s%s%s%s ...", WHT,PACKAGE_VERSION,END, GREEN, ftp->server, END);
+	print(PINFO, FALSE, "%sStarting skod %s - scanning %s%s%s%s ...", WHT,PACKAGE_VERSION,END, GREEN, ftp->server, END);
 	skod_parse_stat(skod, ftp);
-	print(PINFO, FALSE, "%s[*] Generating fingerprint %s ...", WHT,END);
+	print(PINFO, FALSE, "%sGenerating fingerprint %s ...", WHT,END);
 	skod_fingerprint_parse(skod, ftp, v);
-	print(PINFO, FALSE, "[*] %s%s%s server running %s%s%s.", GREEN,skod->os,END,YEL,skod->prod,END);
+	print(PINFO, FALSE, "%s%s%s server running %s%s%s.", GREEN,skod->os,END,YEL,skod->prod,END);
 }
-
-
-/* Destect IP version */ 
+ 
 void skod_detect_ip(void) {
     struct in_addr addr;
     struct in6_addr addr6;
@@ -272,16 +269,13 @@ int main(int argc, char **argv) {
 	ftp.password = skod.password;
 	ftp.server = skod.server;
 	ftp.port = skod.port;
-	ftp.alarm_sec = 3; /* High risk */
+	ftp.alarm_sec = 3;
 
 	ftp_mkcon(&ftp);
 
-	if ( skod.dest != NULL )
-		ftp_cwd(&ftp, skod.dest);
-	else if ( skod.dest == NULL ) {
-		if ( flag == 3 || flag == 4 )
-			print(PERROR, TRUE,"You need to pass --dest (destination folder) with --download/--upload.");
-	}
+	if ( skod.dest == NULL )
+		skod.dest = ".";
+	ftp_cwd(&ftp, skod.dest);
 
 	switch(flag) {
 		case SKOD_LS:
@@ -291,6 +285,7 @@ int main(int argc, char **argv) {
 			ftp_delete(&ftp, skod.path);
 			break;
 		case SKOD_DOWNLOAD:
+			ftp_download(&ftp, skod.dest, skod.path);
 			break;
 		case SKOD_UPLOAD:
 			break;

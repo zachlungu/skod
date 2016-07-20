@@ -9,6 +9,7 @@
 #include <time.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <arpa/ftp.h>
 #include <netdb.h>
 #include <stdarg.h>
 #include <unistd.h>
@@ -28,7 +29,7 @@ char ip[MAX_STR];
 enum { FALSE, TRUE};
 
 /* For the command line arguments flag. */
-enum { SKOD_LS, SKOD_PWD, SKOD_MDTM,
+enum { SKOD_LS=1, SKOD_PWD, SKOD_MDTM,
 			 SKOD_DOWNLOAD, SKOD_UPLOAD,
 			 SKOD_REMOVE, SKOD_FSIZE, 
 			 SKOD_SCAN, SKOD_CAT};
