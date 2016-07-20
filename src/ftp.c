@@ -1,53 +1,168 @@
-/* ftp.c - File transfer protocol functions - will try to follow RFC 959 
- *
- * Written by Hypsurus <hypsurus@mail.ru> *
- *
- * See 'LICENSE' for copying 
- *
- */
+/*   ftp.c -   File transfer protocol functions (RFC 959)            
+*		    
+* Copyright (c) 2015, 2016 by Hypsurus <hypsurus@mail.ru>     
+*
+* skod is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 3 of the License, or
+* (at your option) any later version.
+*
+* skod is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*
+*/
 
 #include "ftp.h"
+
+/* Upload files and folders. */
+void ftp_upload(ftp_t *ftp, char *dest, char *path) {
+	;
+}
+
+/* Upload single file to the FTP server. */
+void ftp_upload_single(ftp_t *ftp, char *dest, char *path) {
+;	
+}
+
+/* Download files and folders. */
+void ftp_download(ftp_t *ftp, char *dest, char *path) {
+	char buffer[MAX_STR];
+	FILE *data = NULL;
+	char *line = NULL;
+	char *folder_name = NULL;
+
+	ftp_close(ftp);
+	ftp_mkcon(ftp);
+	ftp->dataport = ftp_getdataport(ftp);
+
+	fprintf(ftp->FD, "NLST %s\r\n", path);
+	ftp_getline(ftp);
+	data = tcp_connect(ip, ftp->dataport, "r");
+	
+	while (( fgets(buffer, sizeof(buffer), data)) != NULL ) {
+		ftp_close(ftp);
+		ftp_mkcon(ftp);
+		strtok(buffer, "\r\n");
+
+		fprintf(ftp->FD, "SIZE %s\r\n", buffer);
+		line = ftp_getline(ftp);
+		ftp->code = atoi(line);
+		if ( ftp->code == 213 ) {
+			ftp_download_single(ftp, dest, buffer);
+		}
+		else if ( ftp->code == 550 && strstr(line, "plain")) {
+			folder_name = strrchr(buffer, '/')+1;	
+			mkdir(folder_name, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
+			chdir(folder_name); /* Change folder for downloading the file. */
+			print(PINFO, FALSE, "Downloading folder: %s%s%s", GREEN, buffer, END);
+			ftp_download(ftp, dest, buffer);
+			chdir("..");
+			chdir(dest);
+		}
+		else if ( ftp->code == 550 && strstr(line, "denied")) {		
+			print(PERROR, FALSE, "%s - %sAccess denied%s", buffer, RED, END);
+		}
+	}
+}
+
+/* Download a singal file from remote host. */
+void ftp_download_single(ftp_t *ftp, char *dest, char *path) {
+	download_t d;
+	char *line = NULL;
+
+	ftp_close(ftp);
+	ftp_mkcon(ftp);
+
+	d.file_size = ftp_size(ftp, path);
+	d.dl_size = 0;
+
+	fprintf(ftp->FD, "TYPE I\r\n");
+	ftp_getline(ftp);
+
+	ftp->dataport = ftp_getdataport(ftp);
+	d.data = tcp_connect(ip, ftp->dataport, "r");	
+	fprintf(ftp->FD, "RETR %s\r\n", path);
+	line = ftp_getline(ftp);
+	ftp->code = atoi(line);
+
+	if ( ftp->code == 150 ) {
+		d.file_name = strrchr(path, '/')+1;	
+		
+		/* Check if file already exists in the target directory */
+		if ( util_file_exists(d.file_name) ) {
+			print(PERROR, FALSE, "%s - already exists in %s.", d.file_name, dest);
+			return;
+		}
+
+		else if (( d.out_file = fopen(d.file_name, "wb")) == NULL ) {
+			print(PERROR, FALSE, "Failed to create: %s.", d.file_name);
+			return;
+		}
+	} 
+	else {
+		print(PERROR, FALSE, "Failed to download %s (%s).", d.file_name, line);
+		return;
+	}
+
+	while (( fgets(d.buffer, sizeof(d.buffer), d.data)) != NULL ) {
+		d.dl_size += fwrite(d.buffer, 1, strlen(d.buffer), d.out_file);
+		printf("%s%s%s Downloading %s\'%s\'%s %d of %d\r", BLUE, UNICODE_CHECK, END, 
+			YEL, d.file_name, END,
+			d.dl_size, d.file_size);
+	}
+
+	fclose(d.out_file);
+	putchar(0x0a);
+}
 
 /* Mdtm - return the modification time of a file*/
 void ftp_mdtm(ftp_t *ftp, char *path) {
 	char *line = NULL;
 	char act[MAX_STR];
 
+	ftp_close(ftp);
+	ftp_mkcon(ftp);
 	fprintf(ftp->FD, "MDTM %s\r\n", path);
 	line = ftp_getline(ftp);
 	ftp->code = atoi(line);
 	if ( ftp->code == 550 )
-		die("Failed to run MTDM on \'%s\'.", path);
+		print(PERROR, TRUE,"Failed to run MTDM on \'%s\'.", path);
 	sprintf(act, "%s", strrchr(line, 0x20)+1);
-	print(0, "%s%s%s %c%c:%c%c:%c%c %c%c/%c%c/%c%c%c%c",
-			GREEN,path,END,
+	print(PSUCCESS, FALSE, "%s %c%c:%c%c:%c%c %c%c/%c%c/%c%c%c%c\n",
+			path,
 			act[8], act[9], act[10], act[11], act[12], act[13],
 			act[6], act[7],
 			act[4], act[5],
 			act[0], act[1],act[2], act[3]);
 }
 
-/* Change working directory for --dest */
+/*
+* When the download starts skod will change to the --dest,-e folder.
+*/
 void ftp_cwd(ftp_t *ftp, char *path) {
 	char *line = NULL;
 
 	/* if download */ 
-	if ( flag == 3 ) {
+	if ( flag == SKOD_DOWNLOAD ) {
 		if ( chdir(path) == -1 )
-			die("Cannot change direcotry to \'%s\' ...", path);
+			print(PERROR, TRUE,"Cannot change direcotry to \'%s\' ...", path);
 	}
 
 	/* if upload */
-	if ( flag == 4 ) {
+	if ( flag == SKOD_UPLOAD ) {
 		fprintf(ftp->FD, "CWD %s\r\n", path);
 		line = ftp_getline(ftp);
 		ftp->code = atoi(line);
 		if ( ftp->code == 550 )
-			die("Failed to change directory to %s\'%s\'%s.", RED,END);
+			print(PERROR, TRUE,"Failed to change directory to %s\'%s\'%s.", RED,END);
 	}
 }
 
-/* delete file/folder  from the server */
 void ftp_delete(ftp_t *ftp, char *path) {
 	char *line = NULL;
 
@@ -55,202 +170,12 @@ void ftp_delete(ftp_t *ftp, char *path) {
 	line = ftp_getline(ftp);
 	ftp->code = atoi(line);
 	if ( ftp->code == 250 )
-		print(0, "File %s\'%s\'%s deleted!", GREEN,path,END);
+		print(PSUCCESS, FALSE, "%s\'%s\'%s deleted!", path);
 	else if ( ftp->code ==  550 )
-		die("%s\'%s\'%s No such file or directory.", RED,path,END);
+		print(PERROR, TRUE, "\'%s\' No such file or directory.", path);
 }
 
-/* upload single file to the FTP server */
-void ftp_upload_single(ftp_t *ftp, char *path) {
-	char *line = NULL;
-	char *filename = NULL;
-	FILE *data;
-	FILE *fp;
-	char buffer[MAX_STR];
-	long int dsize = 0;
-	long int rsize = 0;
-	long int fsize = 0;
-	data_t d1;
-	data_t d2;
-
-	if ( path[0] == 0x2f || path[strlen(path)-1] == 0x2f )
-		filename = strrchr(path, '/') + 1;
-	else
-		filename = path;
-
-	if (( fp = fopen(path, "r")) == NULL )
-		die("Cannot read %s.", path);
-
-	fseek(fp, 0L, SEEK_END);
-	fsize = ftell(fp);
-	fseek(fp, 0L, SEEK_SET);
-
-	ftp->dataport = ftp_getdataport(ftp);
-	fprintf(ftp->FD, "TYPE I\r\n");
-	line = ftp_getline(ftp);
-	if ( atoi(line) == 500 )
-		die("Failed to set TYPE.");
-
-	fprintf(ftp->FD, "STOR %s\r\n", path);
-
-	/* SIGALRM */
-	line = ftp_getline(ftp);
-	data = tcp_connect(ip, ftp->dataport, "w");
-
-	calc_bytes(&d1, fsize);
-	while(( rsize = fread(buffer, 1, sizeof(buffer), fp) ) > 0 ) {
-		if ( buffer[rsize +1] == '\r' )
-			buffer[rsize +1] = '\0';
-		dsize += fwrite(buffer, 1, rsize, data);
-		calc_bytes(&d2, dsize);
-		fprintf(stdout, "%s:: Uploading %s\'%s\'%s %s(%.2f%c) %.2f%c%s\r",
-				WHT,GREEN,
-				filename,END,
-				YEL,
-				d1.bytes,
-				d1.bytes_postfix,
-				d2.bytes,
-				d2.bytes_postfix,
-				END);
-
-		fflush(stdout);
-	}
-	putchar(0x0a);
-
-	if ( fsize == dsize )
-		print(0, "File %s\'%s\'%s saved on the server.", GREEN,filename,END);
-	else
-		print(1, "File %s\'%s\'%s is corrupted, try uploading it again?", RED,filename,END);
-		
-	fclose(fp);
-	fclose(data);
-	close(dfd);
-}
-
-/* download files/folders */
-void ftp_download(ftp_t *ftp, char *path) {
-	char *line = NULL;
-	char buffer[MAX_STR];
-	FILE *data;
-	int co = 0;
-
-	ftp->alarm_sec = 3;
-	fprintf(ftp->FD, "SIZE %s\r\n", path);
-	line = ftp_getline(ftp);
-	ftp->code = atoi(line);
-
-	if ( ftp->code == 213 ) {
-		ftp_mkcon(ftp);
-		ftp_download_single(ftp, path, 1);
-	}
-	else {
-		/* TODO: add download time */
-		print(3, ">>> %sStart downloading from%s %s\'%s\'%s ...\n",YEL,END,GREEN,path,END); 
-		ftp->dataport = ftp_getdataport(ftp);
-		fprintf(ftp->FD, "NLST %s\r\n", path);
-		data = tcp_connect(ip, ftp->dataport, "r");
-		ftp_getline(ftp);
-
-		while ( fgets(buffer, sizeof(buffer), data)) {
-			buffer[strlen(buffer)-2] = '\0';
-			ftp_mkcon(ftp);
-			ftp_download_single(ftp, buffer, 0);
-			co++;
-		}
-		fclose(data);
-		close(dfd);
-		print(0, ">>> %sFinished! we have %s%s%d files (:%s", GREEN,END,
-			YEL,co,END, path);
-	}
-}
-
-
-/* download single file from the FTP server */
-void ftp_download_single(ftp_t *ftp, char *path, int vb) {	
-	char *line = NULL;
-	FILE *data;
-	FILE *fp;
-	char buffer[MAX_STR];
-	char *filename = NULL;
-	char file_size[MAX_STR];
-	long int dsize = 0;
-	int rsize = 0;
-	long int fsize = 0;
-	long int lsize = 0;
-	data_t d1;
-	data_t d2;
-
-	/* In case the URL have more then one / */
-	if ( path[strlen(path)-1] == 0x2f )
-		path[strlen(path)-1] = 0x00;
-
-	/* strrchr return the last string */
-	filename = strrchr(path, '/') + 1;
-
-	/* Check if file exists before downloading */
-	if (util_file_exists(filename) == 1 ) {
-		print(1, "%s\'%s\' already exists.%s", WHT,filename,END);
-		return;
-	}
-
-	fsize = (int)ftp_size(ftp, path);
-	ftp->dataport = ftp_getdataport(ftp);
-	fprintf(ftp->FD, "TYPE I\r\n");
-	line = ftp_getline(ftp);
-	if ( atoi(line) == 500 )
-		die("Failed to set TYPE.");
-	fprintf(ftp->FD, "RETR %s\r\n", path);
-
-	/* SIGALRM */
-	line = ftp_getline(ftp);
-	data = tcp_connect(ip, ftp->dataport, "r");
-		
-	if (( fp = fopen(filename, "w")) == NULL )
-		die("Cannot create %s.", filename);
-
-	calc_bytes(&d1, fsize);
-	sprintf(file_size, "[%.2f%c]", d1.bytes ? d1.bytes : 0, d1.bytes_postfix);
-
-	while(( rsize = fread(buffer, 1, sizeof(buffer), data) ) > 0 ) {
-		if ( buffer[rsize +1] == '\r' )
-			buffer[rsize +1] = '\0';
-		dsize += fwrite(buffer, 1, rsize, fp);
-		calc_bytes(&d2, dsize);
-		print(3, "\r%sDownloading %s\'%s\'%s %s %.2f%c\r", WHT,GREEN,
-				filename,END,
-				file_size,
-				d2.bytes, d2.bytes_postfix);
-		fflush(stdout);
-	}
-	putchar(0x0a);
-	fseek(fp, 0L, SEEK_END);
-	lsize = ftell(fp);
-	fseek(fp, 0L, SEEK_SET);
-		
-	/* All good */
-	if ( lsize == fsize ) {
-		if ( vb == 1 )
-			print(0, "File %s\'%s\'%s saved.", GREEN,filename,END);
-	}
-	else {
-		/* inetutils <=1.9.4, 
-		 * This bug discoverd by me in 05-10-2015,
-		 *  SIZE command return file_size+23 bytes*/
-		if ( lsize+23 == fsize ) {
-			if ( vb == 1) {
-				print(0, "File \'%s\' saved.", GREEN,filename,END);
-				print(0, "%sYou have unpatched version of inetutils 1.x.x please upgrade.%s", YEL,END);
-			}
-		}
-		/* Bad */
-		else
-			print(0, "Error: File %s\'%s\'%s is corrupted, try downloading it again?", RED,filename,END);
-	}
-	fclose(fp);
-	fclose(data);
-	close(dfd);
-}
-
+/* Print name of the current directory on the remote host. */
 char * ftp_pwd(ftp_t *ftp) {
 	char *ppwd = NULL;
 	char *line = NULL;
@@ -265,7 +190,7 @@ char * ftp_pwd(ftp_t *ftp) {
 	return pwd;
 }
 
-/* Get file size */
+/* Get file size on the remote host */
 int ftp_size(ftp_t *ftp, char *path) {
 	char *line = NULL;
 	int file_size = 0;
@@ -273,13 +198,13 @@ int ftp_size(ftp_t *ftp, char *path) {
 	fprintf(ftp->FD, "SIZE %s\r\n", path);
 	line = ftp_getline(ftp);
 	if ( atoi(line) != 213 )
-		die("Failed to get \'%s\' size.", path);
+		print(PERROR, TRUE, "Failed to get \'%s\' size.", path);
 
 	sscanf(line, "213 %d", &file_size);
 	return (file_size);
 }
 
-/* print contents of single file from the FTP server */
+/* Display the contents of single file from the remote host */
 void ftp_cat(ftp_t *ftp, char *path) {
 	char *line = NULL;
 	FILE *data;
@@ -289,7 +214,7 @@ void ftp_cat(ftp_t *ftp, char *path) {
 	fprintf(ftp->FD, "TYPE I\r\n");
 	line = ftp_getline(ftp);
 	if ( atoi(line) == 500 )
-		die("Failed to set TYPE.");
+		print(PERROR, TRUE,"Failed to set TYPE.");
 	fprintf(ftp->FD, "RETR %s\r\n", path);
 	/* SIGALRM */
 	ftp_getline(ftp);
@@ -302,10 +227,14 @@ void ftp_cat(ftp_t *ftp, char *path) {
 	close(dfd);
 }
 
-/* Get list of files 
- * opt:
- * 1 - NLST
- * 2 - LIST */
+/* 
+ * Get list of files 
+ * 
+ * int opt:
+ * 	1 - NLST - /bin/ls
+ * 	2 - LIST /bin/ls -alh 
+ *
+ */
 void ftp_list(ftp_t *ftp, char *path, int opt) {
 	FILE *data;
 	char buffer[MAX_STR];
@@ -324,27 +253,30 @@ void ftp_list(ftp_t *ftp, char *path, int opt) {
 	data = tcp_connect(ip, ftp->dataport, "r");
 
 	while ( fgets(buffer, sizeof(buffer), data) != NULL ) {
+		strtok(buffer, "\n");
+
 		/* dir*/
 		if ( buffer[0] == 0x64 )
-			print(3, "%s%s%s", BLUE,buffer, END);
+			printf("%s%s%s\n", BLUE,buffer, END);
 		/* symlink*/
 		if ( buffer[0] == 0x6c )
-			print(3, "%s%s%s", CYN,buffer,END);
+			printf("%s%s%s\n", CYN,buffer,END);
 		/* File */
 		else if ( buffer[0] == 0x2d )
-			print(3, "%s%s%s", WHT,buffer, END);
+			printf("%s%s%s\n", WHT,buffer, END);
 	}
 	fclose(data);
 	close(dfd);
 	/* No need to close fd the SIGALRM do it */
 }
 
-/* get data port using PASV*/
+/* 
+* When running PASV the server will return data port. 
+*/
 char * ftp_getdataport(ftp_t *ftp) {
 	char *line = NULL;
 	int p1 = 0;
 	int p2 = 0;
-	int p3_secure = 0;
 	char *act = NULL;
 	static char port[MAX_STR];
 
@@ -354,10 +286,10 @@ char * ftp_getdataport(ftp_t *ftp) {
 	act = strrchr(line, ',') -5;
 	/* p3_secure is for secureing the data port,
 	 * in case it will be 3 digits */
-	sscanf(act, "%d,%d,%d)", &p3_secure, &p1, &p2);
+	sscanf(act, "%*d,%d,%d)", &p1, &p2);
 	
 	#ifdef DEBUG
-	print(2, "Dataport: %d\n", (p1*256+p2));
+		print(PDEBUG, FALSE, "Dataport: %d\n", (p1*256+p2));
 	#endif
 	sprintf(port, "%d", (p1*256+p2));
 	return port;
@@ -375,7 +307,7 @@ int ftp_login(ftp_t *ftp) {
 	if ( ftp->code == 220 || ftp->code == 230 ) {
 		ftp->logged = 1;
 		#ifdef DEBUG
-			print(2, "Login success!\n");
+			print(PDEBUG, FALSE, "Login success!\n");
 		#endif
 		return ftp->code;
 	}
@@ -386,7 +318,7 @@ int ftp_login(ftp_t *ftp) {
 	if ( ftp->code == 220 || ftp->code == 230 ) {
 		ftp->logged = 1;
 		#ifdef DEBUG
-		print(2, "Login success!\n");
+			print(PDEBUG, FALSE, "Login success!\n");
 		#endif
 	}
 	else 
@@ -412,7 +344,7 @@ char * ftp_getline(ftp_t *ftp) {
 		if (strtol(line, &s, 10) != 0 && s != NULL) {
 			if (isspace(*s)) {
 				#ifdef DEBUG
-					print(2,"%s", line);
+					print(PDEBUG, FALSE, "%s", line);
 				#endif
             	return line;
             }
@@ -426,13 +358,13 @@ void ftp_mkcon(ftp_t *ftp) {
 	/* Make the connection */
 	ftp->FD = tcp_connect(ftp->server, ftp->port, "r+");
 	if ( !ftp->FD) 
-		die("Connection failed.");
+		print(PERROR, TRUE,"Connection failed.");
 	ftp_banner(ftp);
 	ftp_login(ftp);
 
 	/* Check if logged IN and not scanning */
 	if ( ftp->logged != 1 && flag != 99 ) {
-		die("%sNo logged in%s, try to reconnect.", RED,END);
+		print(PERROR, TRUE,"%sNo logged in%s, try to reconnect.", RED,END);
 	}
 }
 
@@ -440,7 +372,7 @@ void ftp_mkcon(ftp_t *ftp) {
 void ftp_close(ftp_t *ftp) {
 	fprintf(ftp->FD, "QUIT\r\n");
 	#ifdef DEBUG
-		print(2, "%s", ftp_getline(ftp));
+		print(PDEBUG, FALSE, "%s", ftp_getline(ftp));
 	#endif
 	fclose(ftp->FD);
 	ftp->logged = 0;
