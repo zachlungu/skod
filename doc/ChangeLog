@@ -1,0 +1,8 @@
+* Version 1.0 11-10-2015:
+		* Initial release.
+
+* added support for downloading folder.
+* tidy tcp_connect functionstcp: tidy tcp_connect functions.
+* added support for install/uninstall in Makefile.
+* added bash-completion.
+
