@@ -1,7 +1,25 @@
-/* utils.c - utils */
+/*   utils.c -   helper functions for skod.
+*		    
+* Copyright (c) 2016, 2015 by Hypsurus <hypsurus@mail.ru>     
+*
+* skod is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 3 of the License, or
+* (at your option) any later version.
+*
+* skod is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*
+*/
 
 #include "utils.h"
 
+/* This function will print to stdout for multiple tasks.*/
 void print(int type, int quit, char *format, ...) {
 	char msg[MAX_STR];
 	va_list li;
@@ -12,21 +30,17 @@ void print(int type, int quit, char *format, ...) {
 
 	switch(type) {
 		case PINFO:
-			printf("%s%s%s\n", WHT, END, msg);
+			printf("%s%s%s %s\n", CYN, UNICODE_CHECK, END, msg);
 			break;
 		case PERROR:
-			printf("%s/X/%s %s\n", RED, END, msg);
+			printf("%s%s%s %s\n", RED, UNICODE_X, END, msg);
 			break;
 		/* debug */
 		case PDEBUG:
 			printf("%s/d/%s %s", YEL, END, msg);
 			break;
 		case PSUCCESS:
-			printf("%s/s/%s %s", GREEN, END, msg);
-			break;
-		/* print without new line */
-		case PNNL:
-			printf("%s", msg);
+			printf("%s%s%s %s", GREEN, UNICODE_CHECK, END, msg);
 			break;
 	}
 
@@ -59,6 +73,22 @@ void signal_handler(int sig) {
 		close(fd);
 		print(PERROR, TRUE, "%ssInterrrupt ... %s\n", YEL,END);
 	}
+}
+
+/* Makedirs */
+void util_makedirs(char *path) {
+	char **ptr = NULL;
+	char *dirs[10];
+	int i = 0;
+
+	//dirs = &strchr(path, '/');
+	ptr = dirs;
+
+	for (i = 0; ptr[i] != 0; i++) {
+		printf("%s\n", *ptr);
+		ptr++;
+	}
+
 }
 
 /* Calc bytes size for recived bytes.. */

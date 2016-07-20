@@ -1,4 +1,22 @@
-/* utils.h - just utils.h */
+/*   utils.h - skod helper functions.
+*		    
+* Copyright (c) 2015, 2016 by Hypsurus <hypsurus@mail.ru>     
+*
+* skod is free software; you can redistribute it and/or modify
+* it under the terms of the GNU General Public License as published by
+* the Free Software Foundation; either version 3 of the License, or
+* (at your option) any later version.
+*
+* skod is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program.  If not, see <http://www.gnu.org/licenses/>.
+*
+*/
+
 
 #ifndef UTILS_H
 #define UTILS_H
@@ -16,7 +34,13 @@
 #define WHT  "\x1B[37m"
 #define END "\033[0m"
 
-enum { PINFO ,PERROR, PNNL, PDEBUG, PSUCCESS};
+/* Unicode */
+#define UNICODE_LINE	"\xe2\x94\x80"
+#define UNICODE_CHECK	"\xe2\x9c\x93"
+#define UNICODE_X	    "x"
+
+
+enum { PINFO ,PERROR, PDEBUG, PSUCCESS};
 
 /* Handle data */
 typedef struct {
@@ -26,6 +50,7 @@ typedef struct {
 
 /* prototypes */
 int util_file_exists(char*);
+void util_makedirs(char*);
 void calc_bytes(data_t *, float);
 void print(int mode,int exit, char*, ...);
 void die(char*, ...);
