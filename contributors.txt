@@ -1,4 +1,0 @@
-Thanks to
-===========
-
-# Jamie Bainbridge (jamie.bainbridge@gmail.com) - Tidy of tcp_connect functions
