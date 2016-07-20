@@ -6,20 +6,13 @@ Written in pure C, without any external library.
 
 ![logo](https://github.com/Hypsurus/skod/wiki/screenshots/skod_logo.png)
 
-###### Skod is unstable!, use it at your own risk!
-###### I need to add more code, but I dont have time to do it.
-
-TODO
-=====
-
-1. Art - new logo (i'm not a designer)
-
 Features
 ==========
 
 * Highlight output.
 * Full support for IPv6
 * bash like commands
+* Recursive download
 
 Platforms
 ==========
@@ -32,9 +25,7 @@ Build
 
 > Run `make` to compile skod.
 
-* Install (Run with sudo )
-
-> `make install`
+> `[sudo] make install`
 
 Usage
 =======
@@ -44,15 +35,15 @@ but you can use `-u, -p` to provide username, and password.
 
 skod is user-friendly and easy to use, follow the screenshots:
 
-##### skod -s localhost --user root --password pass --ls "/"
+```skod -s localhost --user root --password pass --ls "/"```
 
 ![list](https://github.com/Hypsurus/skod/wiki/screenshots/skod_list.png)
 
-#####  skod -s localhost --user root --password pass --download "/file.x"
+```skod -s localhost --user root --password pass --download /file.x```
 
 ![download](https://github.com/Hypsurus/skod/wiki/screenshots/skod_download.png)
 
-##### skod --help
+```skod --help```
 
 ![options](https://github.com/Hypsurus/skod/wiki/screenshots/skod_options.png)
 
@@ -79,5 +70,5 @@ Thanks
 Copying
 ========
 
-> Copyright 2015 (C) Hypsurus <hypsurus@mail.ru>.
-> License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
+Copyright 2015 (C) Hypsurus <hypsurus@mail.ru>. 
+License GPLv3+: GNU GPL version 3 or later <http://gnu.org/licenses/gpl.html>.
