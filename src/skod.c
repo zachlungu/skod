@@ -288,6 +288,7 @@ int main(int argc, char **argv) {
 			ftp_download(&ftp, skod.dest, skod.path);
 			break;
 		case SKOD_UPLOAD:
+			ftp_upload(&ftp, skod.dest, skod.path);
 			break;
 		case SKOD_CAT:
 			ftp_cat(&ftp, skod.path);

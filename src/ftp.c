@@ -19,14 +19,37 @@
 
 #include "ftp.h"
 
-/* Upload files and folders. */
+/* TODO: Upload files and folders. */
 void ftp_upload(ftp_t *ftp, char *dest, char *path) {
-	;
+	ftp_upload_single(ftp, dest, path);
 }
 
 /* Upload single file to the FTP server. */
 void ftp_upload_single(ftp_t *ftp, char *dest, char *path) {
-;	
+	upload_t u;
+
+	ftp_close(ftp);
+	ftp_mkcon(ftp);
+	u.file_name = strrchr(path, '/')+1;
+
+	if (( u.in_file = fopen(path, "r")) == NULL ) 
+		print(PERROR, TRUE, "Failed to read: %s", u.file_name);
+	
+	fprintf(ftp->FD, "TYPE I\r\n");
+	ftp_getline(ftp);
+	ftp->dataport = ftp_getdataport(ftp);
+	fprintf(ftp->FD, "STOR %s/%s\r\n", dest, u.file_name);
+	u.data = tcp_connect(ip, ftp->dataport, "wb");
+
+	while(( fgets(u.buffer, sizeof(u.buffer), u.in_file)) != NULL ) {
+		u.up_size += fwrite(u.buffer, strlen(u.buffer), 1, u.data);
+		printf("%s%s%s Uploading %s\'%s\'%s %d\r", BLUE, UNICODE_CHECK, END,
+		YEL, u.file_name, END, u.up_size);
+	}
+
+	putchar(0x0a);
+	fclose(u.in_file);
+	fclose(u.data);
 }
 
 /* Download files and folders. */
@@ -117,6 +140,7 @@ void ftp_download_single(ftp_t *ftp, char *dest, char *path) {
 	}
 
 	fclose(d.out_file);
+	fclose(d.data);
 	putchar(0x0a);
 }
 

@@ -53,7 +53,9 @@ typedef struct {
 	FILE *in_file;
 	FILE *data;
 	int up_size;
+	int file_size;
 	char *file_name;
+	char buffer[MAX_STR];
 } upload_t;
 
 /* prototypes */
@@ -70,6 +72,7 @@ void ftp_close(ftp_t*);
 void ftp_cat(ftp_t*, char*);
 void ftp_download_single(ftp_t*, char*, char*);
 void ftp_download(ftp_t*, char*, char*);
+void ftp_upload(ftp_t*, char*, char*);
 void ftp_upload_single(ftp_t*, char*, char*);
 void ftp_delete(ftp_t*, char*);
 void ftp_cwd(ftp_t*, char*);
