@@ -24,7 +24,7 @@ Use == insead of ! for example:
 .................................
 
 if (!y) >>> Bad
-if ( y == 0 ) >>> Good
+if ( y == NULL ) >>> Good
 
 
 Comments should be ANSI-C89 compliant, That means no //
@@ -64,8 +64,10 @@ void ftp_remove(ftp_t*, char*);
 void ftp_mkcon(ftp_t *);
 void ftp_close(ftp_t*);
 void ftp_cat(ftp_t*, char*);
-void ftp_download_single(ftp_t*, char*);
-void ftp_upload_single(ftp_t*, char*);
+void ftp_download(ftp_t*, char*, char*);
+void ftp_download_single(ftp_t*, char*, char*);
+void ftp_upload(ftp_t*, char* char*);
+void ftp_upload_single(ftp_t*, char* char*);
 void ftp_delete(ftp_t*, char*);
 void ftp_cwd(ftp_t*, char*);
 void ftp_mdtm(ftp_t*, char*);
@@ -79,8 +81,7 @@ utils.h
 
 int util_file_exists(char*);
 void calc_bytes(data_t *, float);
-void print(int mode,char*, ...);
-void die(char*, ...);
+void print(int mode, int quit, char*, ...);
 void signal_handler(int);
 void chkbuffer(char*);
 
@@ -91,5 +92,6 @@ Editor
 
 vim:set shiftwidth=4 tabstop=2
 
-Written by Hypsurus <hypsurus@mail.ru>.
+Last edited by Hypsurus at (Thu, 21 Jul 2016 07:28:53)
 Last edited by Hypsurus at (Thu, 08 Oct 2015 17:36:11)
+

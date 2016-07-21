@@ -9,7 +9,7 @@ FILE * tcp_connect(char *server, char *port, char *mode) {
 
 	/* Set time-out*/
 	timeout.tv_sec = 1;
-	timeout.tv_usec = 0;
+	timeout.tv_usec = 0; /* 800000 micro-second (0.8 secound) */
 
 	memset(&ai, 0, sizeof(struct addrinfo));
 	if (( getaddrinfo(server, port, &ai, &srv)) != 0 ) {
